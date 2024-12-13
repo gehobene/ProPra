@@ -1,4 +1,6 @@
 package de.fernunihagen.dbis.anguillasearch;
+
+import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -10,6 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+
 /**
  * Unit tests for the crawler.
  */
@@ -33,15 +36,17 @@ class CrawlerTests {
         for (JsonObject testJSON : testJSONs) {
             // Extract the seed URLs from the JSON file
             String[] seedUrls = new Gson().fromJson(testJSON.get("Seed-URLs"), String[].class);
-            
-     
+
             // Add your code here to get the number of crawled pages
 
             // Get the crawled pages
             int numPagesCrawled = 0;
-            
-            
-            // Verify that the number of crawled pages is correct, i.e. the same as stated in the JSON file
+
+            Crawler crawler = new Crawler(1024);
+            numPagesCrawled = crawler.crawl(Arrays.asList(seedUrls));
+
+            // Verify that the number of crawled pages is correct, i.e. the same as stated
+            // in the JSON file
             assertEquals(testJSON.get("Num-Websites").getAsInt(), numPagesCrawled);
         }
     }
@@ -52,17 +57,20 @@ class CrawlerTests {
         for (JsonObject testJSON : testJSONs) {
             // Extract the seed URLs from the JSON file
             String[] seedUrls = new Gson().fromJson(testJSON.get("Seed-URLs"), String[].class);
-            
-            
 
             // Add your code here to get the number of links
 
             // Get the number of links
             int numLinks = 0;
-   
+            Crawler crawler = new Crawler(1024);
+            crawler.crawl(Arrays.asList(seedUrls));
+            numLinks = crawler.getCrawledData().values().stream()
+                    .mapToInt(w -> w.getLinks().size())
+                    .sum();
+            System.out.println(crawler.getCrawledData().values().stream().map(w -> w.getBody()));
 
-
-            // Verify that the number of links is correct, i.e. the same as stated in the JSON file
+            // Verify that the number of links is correct, i.e. the same as stated in the
+            // JSON file
             assertEquals(testJSON.get("Num-Links").getAsInt(), numLinks);
         }
     }

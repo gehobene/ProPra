@@ -8,8 +8,12 @@ import org.slf4j.LoggerFactory;
  */
 public final class AnguillaSearch {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(AnguillaSearch.class);
-    
+    /**
+     * Logger for the output or info or error messages.
+     */
+    private static final Logger LOGGER = LoggerFactory.
+    getLogger(AnguillaSearch.class);
+
     private AnguillaSearch() {
     }
 
@@ -18,18 +22,25 @@ public final class AnguillaSearch {
      *
      * @param args Command line arguments
      */
-    public static void main(String[] args) {
+    public static void main(final String[] args) {
 
         // Print start message to logger
-        LOGGER.info("Starting AnguillaSearch...");
+        if (LOGGER.isInfoEnabled()) {
+            LOGGER.info("Starting AnguillaSearch...");
+        }
 
         /*
-         * Set the java.awt.headless property to true to prevent awt from opening windows.
-         * If the property is not set to true, the program will throw an exception when trying to 
+         * Set the java.awt.headless property to true to prevent awt from
+         * opening windows.
+         * If the property is not set to true, the program will throw
+         * an exception when trying to
          * generate the graph visualizations in a headless environment.
          */
         System.setProperty("java.awt.headless", "true");
-        LOGGER.info("Java awt GraphicsEnvironment headless: {}", java.awt.GraphicsEnvironment.isHeadless());
+        if (LOGGER.isInfoEnabled()) {
+            LOGGER.info("Java awt GraphicsEnvironment headless: {}",
+                    java.awt.GraphicsEnvironment.isHeadless());
+        }
 
     }
 }
