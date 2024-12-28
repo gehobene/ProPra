@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.SocketTimeoutException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -219,5 +220,15 @@ public class Crawler {
      */
     public Map<String, WebsiteData> getCrawledData() {
         return new HashMap<>(crawledData);
+    }
+
+    /**
+     * Retrieves an ArrayList of website data of all crawled sites, in
+     * the form of {@link WebsiteData} objects.
+     *
+     * @return an ArrayList of {@link WebsiteData} objects of the crawled sites
+     */
+    public List<WebsiteData> getCrawledDataAsList() {
+        return new ArrayList<>(crawledData.values());
     }
 }
