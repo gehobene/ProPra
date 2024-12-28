@@ -18,29 +18,29 @@ import java.util.Set;
 public class WebsiteData {
 
     /**
- * URL of the website an instancs of this class represents.
- */
-private String urlOfSite;
+     * URL of the website an instancs of this class represents.
+     */
+    private String urlOfSite;
 
-/**
- * Title of the website an instancs of this class represents.
- */
-private String title;
+    /**
+     * Title of the website an instancs of this class represents.
+     */
+    private String title;
 
-/**
- * Header of the website an instancs of this class represents.
- */
-private String header;
+    /**
+     * Header of the website an instancs of this class represents.
+     */
+    private String header;
 
-/**
- * Body of the website an instancs of this class represents.
- */
-private String body;
+    /**
+     * Body of the website an instancs of this class represents.
+     */
+    private String body;
 
-/**
- * Links on the website an instancs of this class represents.
- */
-private Set<String> links;
+    /**
+     * Links on the website an instancs of this class represents.
+     */
+    private Set<String> links;
 
     // ============================constructors===========================//
 

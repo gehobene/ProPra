@@ -12,7 +12,7 @@ import java.nio.file.Path;
 import java.util.Optional;
 
 /**
- * This is a utility class that provides some helper methods for the tests
+ * This is a utility class that provides some helper methods for the tests.
  */
 public final class Utils {
 
@@ -25,7 +25,7 @@ public final class Utils {
      * @param fileName the Name of the File to be parsed
      *
      * @return the parsed object as a JsonObject
-     * 
+     *
      * @throws IOException If file can't be read.
      */
     public static JsonObject parseJSONFile(final String fileName)
@@ -43,7 +43,7 @@ public final class Utils {
      * @param folderName The Name of the Folder where the Files should be parsed
      *
      * @return the parsed files as a List of JsonObjects.
-     * 
+     *
      * @throws IOException If files in the folder can't be read, the folder
      *                     doesn't exist or something similar.
      */

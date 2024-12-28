@@ -1,7 +1,9 @@
 package de.fernunihagen.dbis.anguillasearch;
 
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 
 /**
  * Main class of the AnguillaSearch project.
@@ -11,8 +13,8 @@ public final class AnguillaSearch {
     /**
      * Logger for the output or info or error messages.
      */
-    private static final Logger LOGGER = LoggerFactory.
-    getLogger(AnguillaSearch.class);
+    private static final Logger LOGGER =
+    LoggerFactory.getLogger(AnguillaSearch.class);
 
     private AnguillaSearch() {
     }
@@ -28,7 +30,6 @@ public final class AnguillaSearch {
         if (LOGGER.isInfoEnabled()) {
             LOGGER.info("Starting AnguillaSearch...");
         }
-
         /*
          * Set the java.awt.headless property to true to prevent awt from
          * opening windows.
