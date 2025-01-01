@@ -40,6 +40,13 @@ public class IndexBuilder {
     private Map<String, List<String>> forwardIndex;
 
     /**
+     * the forward index with TFIDF scores (stores for each url a mapping from
+     * the token to the
+     * TFIDF score for that url).
+     */
+
+    private Map<String, Map<String, Double>> forwardIndexTfIdf;
+    /**
      * the reverse index without TFIDF scores(a token gets mapped to a set of
      * urls on which sites the token occurs).
      */
@@ -60,6 +67,11 @@ public class IndexBuilder {
      * list of website data to be indexed.
      */
     private List<WebsiteData> dataToIndex;
+
+    /**
+     * Set of all Tokens that occur in the indexed data.
+     */
+    private Set<String> setOfAllTokens;
 
     // ============================constructors===========================//
 
@@ -83,10 +95,14 @@ public class IndexBuilder {
         this.reverseIndexHelper = new HashMap<>();
         this.reverseIndex = new HashMap<>();
         this.totalWebsites = data.size();
+        this.forwardIndexTfIdf = new HashMap<>();
+        this.setOfAllTokens = new HashSet<>();
         try {
             calculateForwardIndex();
             calculateReverseIndex();
             calculateTFIDFScore();
+            setOfAllTokens.addAll(reverseIndexHelper.keySet());
+            calculateForwardIndexTfIdf();
         } catch (Exception e) {
             throw new IllegalStateException(
                     "IndexBuilder could not be initialized",
@@ -195,7 +211,7 @@ public class IndexBuilder {
      * @throws IllegalArgumentException if the token doesn't exist in any of
      *                                  the documents that got indexed.
      */
-    private Double calculateIDFScore(final String token) {
+    public Double calculateIDFScore(final String token) {
         if (reverseIndexHelper.containsKey(token)
                 && !reverseIndexHelper.get(token).isEmpty()) {
             // calculate and return the score
@@ -235,6 +251,44 @@ public class IndexBuilder {
         return (double) frequency / tokensInWebsite.size();
     }
 
+    /**
+     * Maps the TFIDF scores from the reverse index to the forward index
+     * with TFIDF. For every url a Map of (token -> TFIDF) is created
+     * and filled accordingly.
+     */
+    private void calculateForwardIndexTfIdf() {
+        /* iterates over all urls in the forwardindex */
+        for (String url : forwardIndex.keySet()) {
+            /*
+             * initializes a map for the vector of TFIDF scores for the
+             * current url. (token -> TFIDF)
+             */
+            Map<String, Double> urlVector = new HashMap<>();
+            /*
+             * iterates over the set of all occuring tokens in the indexed
+             * data
+             */
+            for (String token : setOfAllTokens) {
+                /*
+                 * if the token exists for this url put the value mapped to
+                 * the token into the urlVector else map a 0.0 to that token
+                 */
+                Double tfIdf = reverseIndex.get(token).get(url);
+                if (tfIdf != null) {
+                    urlVector.put(token, tfIdf);
+                } else {
+                    urlVector.put(token, 0.0);
+                }
+
+            }
+            /*
+             * map the urlvector to the corresponding url in the forward
+             * index
+             */
+            forwardIndexTfIdf.put(url, urlVector);
+        }
+    }
+
     // ===========================getter/setter===========================//
 
     /**
@@ -258,9 +312,34 @@ public class IndexBuilder {
     /**
      * Returns the reverse index with TFIDF scores.
      *
-     * @return the map with the urls and corresponding TFIDF scores.
+     * @return the map with the tokens mapped to urls and their corresponding
+     *         TFIDF scores.
+     *         (Token ->(url->TFIDF)).
      */
     public Map<String, Map<String, Double>> getReverseIndex() {
         return new HashMap<>(reverseIndex);
+    }
+
+    /**
+     * Returns a Set of all tokens of the crawled and indexed websites.
+     *
+     * @return the map with the tokens mapped to urls and their corresponding
+     *         TFIDF scores.
+     *         (Token ->(url->TFIDF)).
+     */
+
+    public Set<String> getSetOfAllTokens() {
+        return new HashSet<>(setOfAllTokens);
+    }
+
+    /**
+     * Returns the forward index with TFIDF scores.
+     *
+     * @return the map with the urls mapped to tokens and their corresponding
+     *         TFIDF scores.
+     *         (url ->(Token->TFIDF)).
+     */
+    public Map<String, Map<String, Double>> getForwardIndexTfIdf() {
+        return new HashMap<>(forwardIndexTfIdf);
     }
 }

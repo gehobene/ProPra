@@ -3,8 +3,11 @@ package de.fernunihagen.dbis.anguillasearch;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
 /**
  * The {@code SearchEngine} class performs a search on an Array of seed urls
@@ -15,13 +18,13 @@ import java.util.Map;
  * in the form of a List of {@link WebsiteData} objects from a list of seed
  * urls (following outgoing links aswell), processes the data using an
  * {@link IndexBuilder} which tokenizes and lemmatizes the data and removes
- * stop words and emojis. Then it calculates a forward and reverse index and
- * saves a map with all tokens from the website data and an inner map with
- * corresponding urls and TFIDF scores.
- * The {@code SearchEngine} class then uses the search query, tokenizes and
- * lemmatizes it and compares the tokens to the reverseindex map from the
- * {@link IndexBuilder} to determine which urls should be shown as relevant
- * searchr esults.
+ * stop words and emojis. Then it calculates a forward index and reverse index.
+ * The {@code SearchEngine} class can provide search results according to
+ * the combined TFIDF score of the tokens are contained within the site
+ * of a specific url or
+ * according to the cosine similarity between the vector of an url and the
+ * vector of the query. The results will be sorted in descending order starting
+ * from the most relevant one.
  */
 public class SearchEngine {
 
@@ -30,22 +33,86 @@ public class SearchEngine {
      */
     private IndexBuilder indexBuilder;
 
-    /**
-     * Performs a search on the given URLs based on the provided query.
-     *
-     * @param query an array of strings which is the search query.
-     * @param urls  an array of urls to be crawled, indexed and searched.
-     * @return a list of URLs sorted by their relevance to the search query in
-     *         descending order.
-     */
     // ============================constructors===========================//
     // ==============================methods==============================//
 
-    public List<String> search(final String[] query, final String[] urls) {
+    /**
+     * Creates a {@link Crawler} and crawls the given {@link String[]} of
+     * urls. Then the field {@link #indexBuilder} is initialized with a new
+     * {@link IndexBuilder} and all crawled data gets processed by the
+     * {@link IndexBuilder} to create all necessary indexes, like
+     * forward index, reverse index and forward index with TFIDF scores.
+     *
+     * @param urls an array of urls which are the seed urls for the crawler.
+     */
+    private void crawlAndIndexUrls(final String[] urls) {
         Crawler crawler = new Crawler(1024);
         crawler.crawl(Arrays.asList(urls));
         indexBuilder = new IndexBuilder(crawler.getCrawledDataAsList());
-        Map<String, Double> sortedUrls = searchQuery(query);
+    }
+
+    /**
+     * Tokenizes and lemmatizes the search query by using the
+     * {@link StringTokenizer} class. Joins the query {@link String[]} to
+     * a {@link String} and feeds it to the {@link StringTokenizer}.
+     *
+     * @param query an array of strings which is the search query.
+     * @return a {@link List} of the tokens of the query.
+     */
+
+    private List<String> tokenizeQuery(final String[] query) {
+        /*
+         * joins the strings in the given array to a single string with
+         * whitespaces inbetween
+         */
+        String queryString = String.join(" ", query);
+        /*
+         * tokenizes and lemmatizes the string (search query) and removes stop
+         * words and emojis
+         */
+        return StringTokenizer.tokenizeAndLemmatize(
+                queryString);
+    }
+
+    /**
+     * Searches the given urls and outgoing links up to a total of maximum
+     * 1024 websites in total for the search query terms and spits out a
+     * result list which is sorted in descending order by relevance.
+     *
+     * @param query an array of query tokens to search for in the
+     *              processed url websites. (the search request)
+     * @param urls  an array of seed urls to crawl and index for the search.
+     *
+     * @return a list of urls sorted in descending order by TFIDF scores
+     *         in regard to the query.
+     */
+
+    public List<String> searchWithTFIDF(final String[] query, final String[]
+    urls) {
+        crawlAndIndexUrls(urls);
+        Map<String, Double> sortedUrls = sortScores(
+                processQueryAndSearchTFIDF(query));
+        return extractUrlsToList(sortedUrls);
+    }
+
+    /**
+     * Searches the given urls and outgoing links up to a total of maximum
+     * 1024 websites in total for the search query terms and spits out a
+     * result list which is sorted in descending order by relevance.
+     *
+     * @param query an array of query tokens to search for in the
+     *              processed url websites. (the search request)
+     * @param urls  an array of seed urls to crawl and index for the search.
+     *
+     * @return a list of urls sorted in descending order by cosine similarity
+     *         in regard to the query.
+     */
+
+    public List<String> searchWithCosine(final String[] query, final String[]
+    urls) {
+        crawlAndIndexUrls(urls);
+        Map<String, Double> sortedUrls = sortScores(
+                processQueryAndSearchCosine(query));
         return extractUrlsToList(sortedUrls);
     }
 
@@ -57,26 +124,15 @@ public class SearchEngine {
      * the
      * search query the matching url TFIDF scores are added up so that every
      * url
-     * has once final total score matching the relevance of the site for the
-     * given
-     * search query.
+     * has once final total score representing the relevance of the site for
+     * the given search query.
      *
      * @param query an array of strings which is the search query.
-     * @return a map of urls and their corresponding relevance scores, sorted by
-     *         score in descending order according to the scores.
+     * @return a map of urls and their corresponding relevance scores.
      */
-    private Map<String, Double> searchQuery(final String[] query) {
-        /*
-         * joins the strings in the given array to a single string with
-         * whitespaces inbetween
-         */
-        String queryString = String.join(" ", query);
-        /*
-         * tokenizes and lemmatizes the string (search query) and removes stop
-         * words and emojis
-         */
-        List<String> queryTokens = StringTokenizer.tokenizeAndLemmatize(
-                queryString);
+    private Map<String, Double> processQueryAndSearchTFIDF(final String[]
+    query) {
+        List<String> queryTokens = tokenizeQuery(query);
         // retrieves the calculated reverseindex
         Map<String, Map<String, Double>> reverseIndex = indexBuilder
                 .getReverseIndex();
@@ -96,7 +152,130 @@ public class SearchEngine {
                 /* sort the map */
             }
         }
-        return sortScores(addedScoresPerUrl);
+        return addedScoresPerUrl;
+    }
+
+    /**
+     * Processes the search query to to calculate the relevance of urls fitting
+     * the query. It tokenizes and lemmatizes the query. It then creates a
+     * vector ({@link TokenVector}) for the search query. Then for every url
+     * in
+     * the forward index with TFIDF scores of the {@link #indexBuilder} creates
+     * a vector ({@link TokenVector}) of all the tokens and their TFIDF scores.
+     * Then it calculates the cosine similarity of the query vector and the
+     * url vector for every url and returns a map of (url -> cosine similarity)
+     *
+     * @param query an array of strings which is the search query.
+     * @return a map of urls and their corresponding relevance scores
+     */
+    private Map<String, Double> processQueryAndSearchCosine(final String[]
+    query) {
+        /* tokenizes and lemmatizes the query */
+        List<String> queryTokens = tokenizeQuery(query);
+        /*
+         * creates a TokenVector for the query (calculates the vector of the
+         * query)
+         */
+        TokenVector queryVector = calculateQueryVector(queryTokens);
+
+        /* gets the forward indexes ith TFIDF scores of the crawled websites */
+        Map<String, Map<String, Double>> urlVectorsMap = indexBuilder.
+        getForwardIndexTfIdf();
+
+        /*
+         * creates a result map for urls and cosine similarity scores
+         * (url -> (cosine similarity of url and query))
+         */
+        Map<String, Double> similarityScores = new HashMap<>();
+        /*
+         * iterates over every url in the index and creates a tokenvector for
+         * that url. Then the cosine similarity of the url vector and the
+         * query vector gets calculated and the result gets put into the
+         * map. (url -> (cosine similarity of url and query))
+         */
+        for (Entry<String, Map<String, Double>> url : urlVectorsMap.entrySet(
+        )) {
+            TokenVector urlVector = new TokenVector(urlVectorsMap.get(url.
+            getKey()));
+            /* calculates the cosine similarity for */
+            double cosineSimilarity = queryVector.computeCosineSimilarity(
+                    urlVector);
+            similarityScores.put(url.getKey(), cosineSimilarity);
+            /*
+             * iterates over the resulting map and removes every entry
+             * that has a value of 0 so that only the results remain in
+             * the map that have a cosine similarity > 0.0.
+             */
+            Iterator<Map.Entry<String, Double>> iterator = similarityScores.
+            entrySet().iterator();
+            while (iterator.hasNext()) {
+                if (iterator.next().getValue() == 0.0) {
+                    iterator.remove();
+                }
+            }
+        }
+
+        return similarityScores;
+    }
+
+    /**
+     * Helper method to calculate a {@link TokenVector} vector for the query.
+     * It gets a {@link Set} of all tokens from the {@link #indexBuilder},
+     * then for every Token of that set it puts an entry into a {@link Map}
+     * with the value 0.0 if this token doesn't exist in the query and 1.0 if
+     * it does. Then it creates a {@link TokenVector} object with this map and
+     * returns it.
+     *
+     * @param queryTokens a List of Srings which is the search query.
+     * @return a {@link TokenVector} object which represents the vector for
+     *         the search query.
+     */
+    private TokenVector calculateQueryVector(final List<String> queryTokens) {
+        /*
+         * get a set of all tokens from the indexbuilder and
+         * initialize a map for the query vector.
+         */
+        Set<String> allTokens = indexBuilder.getSetOfAllTokens();
+        Map<String, Double> queryVector = new HashMap<>();
+
+        /*
+         * map amount of occurences of the tokens in the query to the token
+         * for later code expansion of this method. This maps keyset can
+         * then be used like a set of the tokens of queryTokens of the search.
+         */
+        Map<String, Integer> frequencyInQuery = new HashMap<>();
+        /*
+         * iterates over all query tokens and puts them into the map with a
+         * value of 1. If the entry already exists the value will be incremented
+         * by 1.
+         */
+        for (String token : queryTokens) {
+            if (!queryTokens.isEmpty()) {
+                if (frequencyInQuery.containsKey(token)) {
+                    frequencyInQuery.put(token, frequencyInQuery.get(token)
+                            + 1);
+                } else {
+                    frequencyInQuery.put(token, 1);
+                }
+            }
+        }
+
+        /*
+         * iterate over every token of the reverse index which represents
+         * every possible token in all crawled websites.
+         */
+        if (!queryTokens.isEmpty()) {
+            for (String token : allTokens) {
+                /* if the query was empty */
+                if (!frequencyInQuery.containsKey(token)) {
+                    queryVector.put(token, 0.0);
+
+                } else {
+                    queryVector.put(token, 1.0);
+                }
+            }
+        }
+        return new TokenVector(queryVector);
     }
 
     /**
@@ -112,7 +291,7 @@ public class SearchEngine {
         /*
          * iterates over the map with urls and scores and adds up the scores to
          * the provided map which may or may not contain the url with some added
-         * up scores for earlier tokens of the search
+         * up scores for earlier processed tokens of the search
          */
         for (Map.Entry<String, Double> entry : tokenScores.entrySet()) {
             String url = entry.getKey();
