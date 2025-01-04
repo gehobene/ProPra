@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -83,12 +84,45 @@ public class SearchEngine {
      *              processed url websites. (the search request)
      * @param urls  an array of seed urls to crawl and index for the search.
      *
+     * @return a list of urls sorted in descending order by a combination
+     * of cosine similarity and page rank.
+     */
+
+    public List<String> searchWithPageRankAndCosine(final String[] query,
+            final String[] urls) {
+        Crawler crawler = new Crawler(1024);
+        crawler.crawl(Arrays.asList(urls));
+        indexBuilder = new IndexBuilder(crawler.getCrawledDataAsList());
+        PageRank pageRank = new PageRank(crawler.getCrawledDataAsList());
+        Map<String, Double> cosineMap = processQueryAndSearchCosine(query);
+        Map<String, Double> pageRankMap = pageRank.getPageRanksPerUrl();
+        Map<String, Double> combinedScores = new HashMap<>();
+        for (Map.Entry<String, Double> entry : cosineMap.entrySet()) {
+            String url = entry.getKey();
+            Double similarityScore = entry.getValue();
+            Double combinedScore = similarityScore * pageRankMap.get(url);
+            combinedScores.put(url, combinedScore);
+        }
+        Map<String, Double> sortedUrls = sortScores(
+                combinedScores);
+        return extractUrlsToList(sortedUrls);
+    }
+
+    /**
+     * Searches the given urls and outgoing links up to a total of maximum
+     * 1024 websites in total for the search query terms and spits out a
+     * result list which is sorted in descending order by relevance.
+     *
+     * @param query an array of query tokens to search for in the
+     *              processed url websites. (the search request)
+     * @param urls  an array of seed urls to crawl and index for the search.
+     *
      * @return a list of urls sorted in descending order by TFIDF scores
      *         in regard to the query.
      */
 
     public List<String> searchWithTFIDF(final String[] query, final String[]
-    urls) {
+     urls) {
         crawlAndIndexUrls(urls);
         Map<String, Double> sortedUrls = sortScores(
                 processQueryAndSearchTFIDF(query));
@@ -109,7 +143,7 @@ public class SearchEngine {
      */
 
     public List<String> searchWithCosine(final String[] query, final String[]
-    urls) {
+     urls) {
         crawlAndIndexUrls(urls);
         Map<String, Double> sortedUrls = sortScores(
                 processQueryAndSearchCosine(query));
@@ -169,7 +203,7 @@ public class SearchEngine {
      * @return a map of urls and their corresponding relevance scores
      */
     private Map<String, Double> processQueryAndSearchCosine(final String[]
-    query) {
+     query) {
         /* tokenizes and lemmatizes the query */
         List<String> queryTokens = tokenizeQuery(query);
         /*
@@ -313,8 +347,7 @@ public class SearchEngine {
     }
 
     /**
-     * Sorts the urls by their relevance scores (total sum of TFIDF scores of
-     * matching tokens) in descending order.
+     * Sorts the map by values in descending order.
      *
      * @param addedScoresPerUrl a map of urls and their added up scores.
      * @return a sorted map of urls and scores in descending order of scores.
@@ -334,7 +367,7 @@ public class SearchEngine {
          * the right order by iterating over the list values (which is sorted
          * in descending order)
          */
-        Map<String, Double> sortedMap = new HashMap<>();
+        Map<String, Double> sortedMap = new LinkedHashMap<>();
         /* iterates over the list */
         for (Double value : values) {
             /* iterates over the given map */

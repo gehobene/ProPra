@@ -1,7 +1,5 @@
 package de.fernunihagen.dbis.anguillasearch;
 
-
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -26,7 +24,12 @@ public class PageRank {
      * Logger for the output or info or error messages.
      */
     private static final Logger LOGGER = LoggerFactory.getLogger(
-            AnguillaSearch.class);
+            PageRank.class);
+
+    /**
+     * Damping Factor for pagerank calculation.
+     */
+    private static final double DAMPING_FACTOR = 0.85;
 
     /**
      * A map of urls and their corresponding page rank.
@@ -121,7 +124,7 @@ public class PageRank {
                  * initialize an entry
                  */
                 incomingLinksPerUrl.computeIfAbsent(outgoingLink, k -> new
-                HashSet<>());
+                 HashSet<>());
                 /*
                  * map outgoing link of url -> url. For outgoing link of url
                  * url is now an incoming link.
@@ -149,7 +152,7 @@ public class PageRank {
      * iterations is less than 0.0001.
      * Formula:
      * PageRank of Site (i) = sum of all incoming links to i(PageRank of
-     *  Site (j) / amounts of sites that j links to)
+     * Site (j) / amounts of sites that j links to)
      */
     private void calculatePageRanks() {
         /* initialize with 1 so that while loop starts */
@@ -168,6 +171,7 @@ public class PageRank {
                 String url = entry.getKey();
                 Set<String> incomingLinks = entry.getValue();
                 double pageRank = 0.0;
+                double pageRankwithDampening;
                 /*
                  * iterates over every incoming link for the current url
                  * and calculates the pagerank for url. empty sets of
@@ -186,10 +190,16 @@ public class PageRank {
                      * of outgoing links of that link)
                      */
                     pageRank += pageRanksPerUrl.get(incomingLink)
-                    / amountOutgoingLinks;
+                            / amountOutgoingLinks;
+
+
                 }
-                /* puts the newlycalculated pagerank to the temporary map */
-                newPageRanks.put(url, pageRank);
+                /* add dampening and ranksource to the pagerank */
+                pageRankwithDampening = DAMPING_FACTOR * pageRank
+                            + (1 - DAMPING_FACTOR) * (1.0 / crawledData.size(
+                            ));
+                /* puts the newly calculated pagerank to the temporary map */
+                newPageRanks.put(url, pageRankwithDampening);
             }
 
             /*
@@ -252,7 +262,7 @@ public class PageRank {
      */
 
     private void printText(final double difference, final Map<String, Double>
-    pageRanks) {
+     pageRanks) {
         if (LOGGER.isInfoEnabled()) {
             /*
              * prints out the difference between 2 consecutive iterations
@@ -264,7 +274,7 @@ public class PageRank {
                 String url = entry.getKey();
                 double pagerank = entry.getValue();
                 LOGGER.info(String.format("   %s --> Pagerank=%.5f", url,
-                 pagerank));
+                        pagerank));
             }
         }
 
