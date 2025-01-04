@@ -90,6 +90,7 @@ public class IndexBuilder {
             throw new IllegalArgumentException(
                     "the provided List can not be empty");
         }
+        /* initialization of fields */
         this.dataToIndex = new ArrayList<>(data);
         this.forwardIndex = new HashMap<>();
         this.reverseIndexHelper = new HashMap<>();
@@ -97,6 +98,9 @@ public class IndexBuilder {
         this.totalWebsites = data.size();
         this.forwardIndexTfIdf = new HashMap<>();
         this.setOfAllTokens = new HashSet<>();
+        /* calculation of indexes, try catch in case something goes
+         * wrong. Mitigation of half initialized object.
+         */
         try {
             calculateForwardIndex();
             calculateReverseIndex();
