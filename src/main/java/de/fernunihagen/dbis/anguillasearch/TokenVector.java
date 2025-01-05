@@ -27,7 +27,7 @@ public final class TokenVector {
      * of tokens -> TFIDF scores.
      *
      * @param tokenTfIdf the pageLimit at which the crawler stops crawling
-     *                  outgoing links recursively.
+     *                   outgoing links recursively.
      */
 
     public TokenVector(final Map<String, Double> tokenTfIdf) {
@@ -65,6 +65,7 @@ public final class TokenVector {
         }
         /* retrieve the map (vector) for vector B */
         Map<String, Double> tfIdfPerTokenVectorB = vectorB.getTfIdfMap();
+
 
         /* calculates the dot product of vector A and vector B */
         double dotProduct = 0.0;

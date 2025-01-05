@@ -43,7 +43,7 @@ public final class StringTokenizer {
             "can", "will", "just", "don", "should", "now", ",", ".", "!",
             "?", ";", ":", "'", "\"", "-", "_", "(", ")", "[", "]", "{",
             "}", "<", ">", "/", "\\", "|", "@", "#", "$", "%", "^", "&",
-            "*", "~", "`", "=", "+");
+            "*", "~", "`", "=", "+", "–");
 
     /**
      * A static instance of the StanfordCoreNLP pipeline for tokenization and
@@ -96,7 +96,7 @@ public final class StringTokenizer {
         for (CoreLabel token : document.tokens()) {
             tokens.add(token.lemma());
         }
-        tokens.removeAll(STOP_WORDS); // remove stop words
+         tokens.removeAll(STOP_WORDS); // remove stop words
         /* filter out emojis like the cheese emoji (surrogate pairs) */
         tokens.replaceAll(s -> s.replaceAll(
                 "[\\uD800-\\uDBFF\\uDC00-\\uDFFF]", ""));

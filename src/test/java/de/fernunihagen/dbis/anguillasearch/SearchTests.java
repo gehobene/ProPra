@@ -28,8 +28,8 @@ class SearchTests {
         List<String> foundURLs;
 
         // Place your code here to execute the search
-        SearchEngine searchEngine = new SearchEngine();
-        foundURLs = searchEngine.searchWithTFIDF(query, seedUrls);
+        SearchEngine searchEngine = new SearchEngine(seedUrls);
+        foundURLs = searchEngine.searchQuery(query);
 
         // Verify that the found URLs are correct, i.e. the same as stated in the JSON
         // file

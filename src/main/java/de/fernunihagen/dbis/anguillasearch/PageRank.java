@@ -79,7 +79,7 @@ public class PageRank {
 
         } catch (Exception e) {
             throw new IllegalStateException(
-                    "IndexBuilder could not be initialized",
+                    "PageRank could not be initialized",
                     e);
         }
     }

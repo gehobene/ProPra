@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -24,33 +25,53 @@ import java.util.Set;
  * the combined TFIDF score of the tokens are contained within the site
  * of a specific url or
  * according to the cosine similarity between the vector of an url and the
- * vector of the query. The results will be sorted in descending order starting
+ * vector of the query or a combination of those two scores are used to
+ * determine which results are most fitting according to the query.
+ * The results will be sorted in descending order starting
  * from the most relevant one.
  */
 public class SearchEngine {
 
     /**
-     * An instance of IndexBuilder that holds the reverse index data.
+     * An instance of IndexBuilder that holds multiple different indexes
+     * and the TFIDF scores.
      */
     private IndexBuilder indexBuilder;
+    /**
+     * An instance of Crawler that holds the crawled website data.
+     */
+    private Crawler crawler;
+    /**
+     * An instance of PageRank that holds a map of urls mapped to the
+     * corresponding page rank. (url -> page rank)
+     */
+    private PageRank pageRank;
 
     // ============================constructors===========================//
-    // ==============================methods==============================//
-
     /**
-     * Creates a {@link Crawler} and crawls the given {@link String[]} of
+     * Creates a new instanze of {@link SearchEngine}. Initializes a new
+     * {@link Crawler} and crawls the given {@link String[]} of
      * urls. Then the field {@link #indexBuilder} is initialized with a new
      * {@link IndexBuilder} and all crawled data gets processed by the
      * {@link IndexBuilder} to create all necessary indexes, like
      * forward index, reverse index and forward index with TFIDF scores.
+     * Afterwards the {@link #pageRank} field is initialized and the
+     * PageRank object calculates all page ranks for the urls provided
+     * by the crawler. Once initialized the object can be used to perform
+     * different types of searches on the crawled websites.
      *
-     * @param urls an array of urls which are the seed urls for the crawler.
+     * @param seedUrls an array of urls which are the seed urls for the crawler
+     *             of this SearchEngine.
      */
-    private void crawlAndIndexUrls(final String[] urls) {
-        Crawler crawler = new Crawler(1024);
-        crawler.crawl(Arrays.asList(urls));
-        indexBuilder = new IndexBuilder(crawler.getCrawledDataAsList());
+
+    public SearchEngine(final String[] seedUrls) {
+        this.crawler = new Crawler(1024);
+        crawler.crawl(Arrays.asList(seedUrls));
+        this.indexBuilder = new IndexBuilder(crawler.getCrawledDataAsList());
+        this.pageRank = new PageRank(crawler.getCrawledDataAsList());
+
     }
+    // ==============================methods==============================//
 
     /**
      * Tokenizes and lemmatizes the search query by using the
@@ -82,18 +103,12 @@ public class SearchEngine {
      *
      * @param query an array of query tokens to search for in the
      *              processed url websites. (the search request)
-     * @param urls  an array of seed urls to crawl and index for the search.
      *
      * @return a list of urls sorted in descending order by a combination
-     * of cosine similarity and page rank.
+     *         of cosine similarity and page rank.
      */
 
-    public List<String> searchWithPageRankAndCosine(final String[] query,
-            final String[] urls) {
-        Crawler crawler = new Crawler(1024);
-        crawler.crawl(Arrays.asList(urls));
-        indexBuilder = new IndexBuilder(crawler.getCrawledDataAsList());
-        PageRank pageRank = new PageRank(crawler.getCrawledDataAsList());
+    public List<String> searchQueryPageRankAndCosine(final String[] query) {
         Map<String, Double> cosineMap = processQueryAndSearchCosine(query);
         Map<String, Double> pageRankMap = pageRank.getPageRanksPerUrl();
         Map<String, Double> combinedScores = new HashMap<>();
@@ -115,15 +130,11 @@ public class SearchEngine {
      *
      * @param query an array of query tokens to search for in the
      *              processed url websites. (the search request)
-     * @param urls  an array of seed urls to crawl and index for the search.
-     *
      * @return a list of urls sorted in descending order by TFIDF scores
      *         in regard to the query.
      */
 
-    public List<String> searchWithTFIDF(final String[] query, final String[]
-     urls) {
-        crawlAndIndexUrls(urls);
+    public List<String> searchQuery(final String[] query) {
         Map<String, Double> sortedUrls = sortScores(
                 processQueryAndSearchTFIDF(query));
         return extractUrlsToList(sortedUrls);
@@ -136,15 +147,11 @@ public class SearchEngine {
      *
      * @param query an array of query tokens to search for in the
      *              processed url websites. (the search request)
-     * @param urls  an array of seed urls to crawl and index for the search.
-     *
      * @return a list of urls sorted in descending order by cosine similarity
      *         in regard to the query.
      */
 
-    public List<String> searchWithCosine(final String[] query, final String[]
-     urls) {
-        crawlAndIndexUrls(urls);
+    public List<String> searchQueryCosine(final String[] query) {
         Map<String, Double> sortedUrls = sortScores(
                 processQueryAndSearchCosine(query));
         return extractUrlsToList(sortedUrls);
@@ -165,7 +172,7 @@ public class SearchEngine {
      * @return a map of urls and their corresponding relevance scores.
      */
     private Map<String, Double> processQueryAndSearchTFIDF(final String[]
-    query) {
+     query) {
         List<String> queryTokens = tokenizeQuery(query);
         // retrieves the calculated reverseindex
         Map<String, Map<String, Double>> reverseIndex = indexBuilder
@@ -186,6 +193,16 @@ public class SearchEngine {
                 /* sort the map */
             }
         }
+
+        Iterator<Map.Entry<String, Double>> iterator = addedScoresPerUrl.
+        entrySet().iterator();
+        while (iterator.hasNext()) {
+            if (iterator.next().getValue() == 0.0) {
+                iterator.remove();
+            }
+        }
+
+
         return addedScoresPerUrl;
     }
 
@@ -212,6 +229,7 @@ public class SearchEngine {
          */
         TokenVector queryVector = calculateQueryVector(queryTokens);
 
+
         /* gets the forward indexes ith TFIDF scores of the crawled websites */
         Map<String, Map<String, Double>> urlVectorsMap = indexBuilder.
         getForwardIndexTfIdf();
@@ -235,17 +253,17 @@ public class SearchEngine {
             double cosineSimilarity = queryVector.computeCosineSimilarity(
                     urlVector);
             similarityScores.put(url.getKey(), cosineSimilarity);
-            /*
-             * iterates over the resulting map and removes every entry
-             * that has a value of 0 so that only the results remain in
-             * the map that have a cosine similarity > 0.0.
-             */
-            Iterator<Map.Entry<String, Double>> iterator = similarityScores.
-            entrySet().iterator();
-            while (iterator.hasNext()) {
-                if (iterator.next().getValue() == 0.0) {
-                    iterator.remove();
-                }
+        }
+        /*
+         * iterates over the resulting map and removes every entry
+         * that has a value of 0 so that only the results remain in
+         * the map that have a cosine similarity > 0.0.
+         */
+        Iterator<Map.Entry<String, Double>> iterator = similarityScores.
+        entrySet().iterator();
+        while (iterator.hasNext()) {
+            if (iterator.next().getValue() == 0.0) {
+                iterator.remove();
             }
         }
 
@@ -410,6 +428,56 @@ public class SearchEngine {
         return sortedUrls;
     }
 
-}
+    /**
+     * Creates a short snippet of the website body that contains
+     * one of the tokens of the query.
+     *
+     * @param data the {@link WebsiteData} object that contains the body
+     * for the snippet.
+     * @param queryTokens the search query tokens that is looked for in
+     * the body of the website.
+     * @return a short snippet of the website body
+     */
+    public static String createTextForSearchResult(final WebsiteData data,
+            final List<String> queryTokens) {
+        /*
+         * get the body of the website as toLowerCase to increase
+         * chances of matching.
+         */
+        String body = data.getBody().toLowerCase(Locale.ROOT);
+        /*
+         * iterates over every querytoken and looks for the first
+         * index in the string where token occurs
+         */
+        for (String token : queryTokens) {
+            int index = body.indexOf(token.toLowerCase(Locale.ROOT));
+            if (index != -1) {
+                int startingPoint = Math.max(0, index - 50);
+                int endPoint = Math.min(body.length(), index + 50);
+                /*
+                 * creates a substring between start and endpoint
+                 * of the body which contains the querytoken.
+                 */
+                String text = body.substring(startingPoint, endPoint);
+                return "..." + text + "...";
+            }
+        }
+        /* if no querytoken matches the body return empty string */
+        return "";
+    }
 
-// ============================getter/setter============================//
+    // ============================getter/setter============================//
+
+    /**
+     * Retrieves a map of website data of all crawled sites from the
+     * internal crawler.
+     * The key is the url and the value is the data in a structured format
+     * in the datastructure class {@link WebsiteData}
+     *
+     * @return a copy of the map of website data of the internal
+     *         crawler
+     */
+    public Map<String, WebsiteData> getCrawledData() {
+        return new HashMap<>(crawler.getCrawledData());
+    }
+}
