@@ -29,7 +29,7 @@ public final class AnguillaSearch {
      * from the parsed json files.
      */
     private static SearchEngine searchEngine = new SearchEngine(getSeedUrls(
-         parseJsons()));
+            parseJsons()));
     // ============================constructors===========================//
 
     private AnguillaSearch() {
@@ -83,8 +83,8 @@ public final class AnguillaSearch {
 
     private static void inputLoop() {
         /* try with resources and initialization of a new BufferedReader */
-        try (BufferedReader bufferedReader = new BufferedReader(new
-        InputStreamReader(System.in, StandardCharsets.UTF_8))) {
+        try (BufferedReader bufferedReader = new BufferedReader(
+                new InputStreamReader(System.in, StandardCharsets.UTF_8))) {
             /* endless loop */
             while (true) {
                 if (LOGGER.isInfoEnabled()) {
@@ -119,7 +119,7 @@ public final class AnguillaSearch {
                  */
                 if (LOGGER.isInfoEnabled()) {
                     LOGGER.info(String.format("Please enter your search"
-                    + "query or type 'exit' to exit the program"));
+                            + "query or type 'exit' to exit the program"));
                 }
                 /*
                  * Read the search query from console and remove
@@ -151,11 +151,16 @@ public final class AnguillaSearch {
         } catch (IOException e) {
             if (LOGGER.isErrorEnabled()) {
                 LOGGER.error(String.format("Failed to read line from"
-                + "keyboard: %s",
+                        + "keyboard: %s",
                         e.getMessage()));
             }
         }
     }
+    /**
+     *
+     * @param programMode
+     * @param searchQuery
+     */
 
     private static void search(final String programMode, final String
     searchQuery) {
@@ -189,7 +194,7 @@ public final class AnguillaSearch {
 
         if (LOGGER.isInfoEnabled()) {
             LOGGER.info(String.format("___Search Results___: found"
-            + " %s results", searchResults.size()));
+                    + " %s results", searchResults.size()));
         }
         /*
          * if search results are empty prints error message
@@ -218,7 +223,7 @@ public final class AnguillaSearch {
                      * creates snippet from webpage and prints it
                      */
                     String text = SearchEngine.createTextForSearchResult(
-                    websiteData, queryTokensList);
+                            websiteData, queryTokensList);
                     LOGGER.info(String.format("%s", text));
                     LOGGER.info("******************************");
                 }
@@ -228,11 +233,16 @@ public final class AnguillaSearch {
 
     }
 
+    /**
+     * Parses a predefined json file int a {@link List} of {@link JsonObject}.
+     *
+     * @return the list of json objects.
+     */
     private static List<JsonObject> parseJsons() {
         List<JsonObject> testJSONs = new ArrayList<>();
         try {
             testJSONs.add(Utils.parseJSONFile("intranet/"
-            + "cheesy1-f126d0d3.json"));
+                    + "cheesy1-f126d0d3.json"));
         } catch (IOException e) {
             if (LOGGER.isErrorEnabled()) {
                 LOGGER.error(String.format("Failed to parse Jsons: %s",
@@ -242,11 +252,18 @@ public final class AnguillaSearch {
         return testJSONs;
     }
 
+    /**
+     * Extracts the seed urls from a {@link List} of {@link List}.
+     *
+     * @param testJSONs A list of {@link JsonObject} to be processed.
+     * @return A {@code Strring[]} representing the seed urls of the
+     *         provided {@link List} of {@link List}.
+     */
     private static String[] getSeedUrls(final List<JsonObject> testJSONs) {
         List<String> urlList = new ArrayList<>();
         for (JsonObject testJSON : testJSONs) {
             String[] seedUrls = new Gson().fromJson(testJSON.get(
-            "Seed-URLs"), String[].class);
+                    "Seed-URLs"), String[].class);
             urlList.addAll(Arrays.asList(seedUrls));
         }
         return urlList.toArray(new String[urlList.size()]);

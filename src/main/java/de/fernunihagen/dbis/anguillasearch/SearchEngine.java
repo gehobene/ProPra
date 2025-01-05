@@ -458,7 +458,7 @@ public class SearchEngine {
                  * creates a substring between start and endpoint
                  * of the body which contains the querytoken.
                  */
-                String text = body.substring(startingPoint, endPoint);
+                String text = data.getBody().substring(startingPoint, endPoint);
                 return "..." + text + "...";
             }
         }
