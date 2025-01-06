@@ -1,4 +1,4 @@
-package de.fernunihagen.dbis.anguillasearch;
+package de.fernunihagen.dbis.anguillasearch.util;
 
 import java.io.File;
 import java.io.IOException;
@@ -20,6 +20,10 @@ import com.google.gson.JsonObject;
 import com.mxgraph.layout.mxCircleLayout;
 import com.mxgraph.util.mxCellRenderer;
 import com.mxgraph.view.mxGraph;
+
+import de.fernunihagen.dbis.anguillasearch.crawler.Crawler;
+import de.fernunihagen.dbis.anguillasearch.crawler.WebsiteData;
+import de.fernunihagen.dbis.anguillasearch.searching.SearchEngine;
 
 /**
  * This class creates two cicrled graphs of some predefined net of urls which

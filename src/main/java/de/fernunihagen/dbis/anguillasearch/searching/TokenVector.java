@@ -1,4 +1,4 @@
-package de.fernunihagen.dbis.anguillasearch;
+package de.fernunihagen.dbis.anguillasearch.searching;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -32,8 +32,29 @@ public final class TokenVector {
 
     public TokenVector(final Map<String, Double> tokenTfIdf) {
         this.tfIdfPerToken = new HashMap<>(tokenTfIdf);
+        normalizeVector();
     }
     // ==============================methods==============================//
+
+    /**
+     * Normalizes the Vector.
+     */
+
+    private void normalizeVector() {
+        /* calculate the sum of squares of all urlvector values of an url */
+        double squareSumOfTfIdf = 0.0;
+        for (double value : tfIdfPerToken.values()) {
+            squareSumOfTfIdf += value * value;
+        }
+        /* the value to normalize the urlvector values with */
+        double normalizeValue = Math.sqrt(squareSumOfTfIdf);
+
+        // * iterate over url vector map and normalize it */
+        for (Map.Entry<String, Double> entry : tfIdfPerToken.entrySet()) {
+            entry.setValue(entry.getValue() / normalizeValue);
+        }
+
+    }
 
     /**
      * This method calculates the cosine similarity between two given vectors
@@ -66,7 +87,6 @@ public final class TokenVector {
         /* retrieve the map (vector) for vector B */
         Map<String, Double> tfIdfPerTokenVectorB = vectorB.getTfIdfMap();
 
-
         /* calculates the dot product of vector A and vector B */
         double dotProduct = 0.0;
         /* for every token in vector A (this) */
@@ -90,49 +110,9 @@ public final class TokenVector {
              */
             dotProduct += (tfIdfA * tfIdfB);
         }
-
-        /* calculate the denominator of the formula */
-        double amountA = calculateDenominator(tfIdfPerToken);
-        double amountB = calculateDenominator(tfIdfPerTokenVectorB);
-        /*
-         * if any one of the denominators is 0.0 return 0.0
-         */
-        if (amountA == 0.0 || amountB == 0.0) {
-            return 0.0;
-        }
-        /* calculate and return the cosine similarity */
-        return dotProduct / (amountA * amountB);
+        return dotProduct;
     }
 
-    /**
-     * Calculates the amouont of a vector who is represented as a map
-     * (token -> TFIDF scores).
-     *
-     * The amount (||v||) of a vector is calculated as follows.
-     *
-     * <pre>
-     * Formula:
-     * ||v|| = sqrt(sum((w_i)^2))
-     *  i = 1 - n
-     * </pre>
-     *
-     * @param tfIdfTokenMap a map where keys are tokens and values are their
-     *                      corresponding TFIDF scores.
-     * @return the amount of the vector as a double.
-     */
-    private double calculateDenominator(final Map<String, Double>
-    tfIdfTokenMap) {
-        double result = 0.0;
-        /*
-         * for every value in the map multiply with itself and add to
-         * the total result
-         */
-        for (double w : tfIdfTokenMap.values()) {
-            result += w * w;
-        }
-        /* return the square root of result */
-        return Math.sqrt(result);
-    }
     // ============================getter/setter============================//
 
     /**

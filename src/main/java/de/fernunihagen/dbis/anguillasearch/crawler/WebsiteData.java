@@ -1,4 +1,4 @@
-package de.fernunihagen.dbis.anguillasearch;
+package de.fernunihagen.dbis.anguillasearch.crawler;
 
 import java.util.LinkedHashSet;
 import java.util.Set;

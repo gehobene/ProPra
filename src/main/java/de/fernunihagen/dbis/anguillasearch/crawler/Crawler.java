@@ -1,4 +1,4 @@
-package de.fernunihagen.dbis.anguillasearch;
+package de.fernunihagen.dbis.anguillasearch.crawler;
 
 import org.jsoup.HttpStatusException;
 import org.jsoup.Jsoup;

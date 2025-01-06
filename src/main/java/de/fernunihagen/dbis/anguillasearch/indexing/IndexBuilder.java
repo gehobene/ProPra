@@ -1,4 +1,4 @@
-package de.fernunihagen.dbis.anguillasearch;
+package de.fernunihagen.dbis.anguillasearch.indexing;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -7,6 +7,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import de.fernunihagen.dbis.anguillasearch.crawler.WebsiteData;
+import de.fernunihagen.dbis.anguillasearch.util.StringTokenizer;
 
 /**
  * The {@code IndexBuilder} class will calculate forward, reverse indexes
@@ -98,7 +101,8 @@ public class IndexBuilder {
         this.totalWebsites = data.size();
         this.forwardIndexTfIdf = new HashMap<>();
         this.setOfAllTokens = new HashSet<>();
-        /* calculation of indexes, try catch in case something goes
+        /*
+         * calculation of indexes, try catch in case something goes
          * wrong. Mitigation of half initialized object.
          */
         try {
@@ -285,6 +289,7 @@ public class IndexBuilder {
                 }
 
             }
+
             /*
              * map the urlvector to the corresponding url in the forward
              * index

@@ -8,6 +8,8 @@ import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 
+import de.fernunihagen.dbis.anguillasearch.searching.TokenVector;
+
 /**
  * Unit tests for cosine similarity.
  */

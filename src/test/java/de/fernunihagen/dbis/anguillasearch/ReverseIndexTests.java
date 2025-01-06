@@ -16,6 +16,10 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
+import de.fernunihagen.dbis.anguillasearch.crawler.WebsiteData;
+import de.fernunihagen.dbis.anguillasearch.indexing.IndexBuilder;
+import de.fernunihagen.dbis.anguillasearch.util.Utils;
+
 /**
  * Unit tests for the reverse index.
  */

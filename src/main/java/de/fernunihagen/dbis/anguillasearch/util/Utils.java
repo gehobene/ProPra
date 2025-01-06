@@ -1,4 +1,4 @@
-package de.fernunihagen.dbis.anguillasearch;
+package de.fernunihagen.dbis.anguillasearch.util;
 
 import java.util.ArrayList;
 import java.util.List;

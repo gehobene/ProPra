@@ -14,6 +14,10 @@ import org.slf4j.LoggerFactory;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 
+import de.fernunihagen.dbis.anguillasearch.crawler.WebsiteData;
+import de.fernunihagen.dbis.anguillasearch.searching.SearchEngine;
+import de.fernunihagen.dbis.anguillasearch.util.Utils;
+
 /**
  * Main class of the AnguillaSearch project.
  */

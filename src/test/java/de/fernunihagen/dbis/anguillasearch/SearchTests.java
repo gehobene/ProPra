@@ -10,6 +10,9 @@ import org.junit.jupiter.api.Test;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 
+import de.fernunihagen.dbis.anguillasearch.searching.SearchEngine;
+import de.fernunihagen.dbis.anguillasearch.util.Utils;
+
 /**
  * Unit tests for the search.
  */

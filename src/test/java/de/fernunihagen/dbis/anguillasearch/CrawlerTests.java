@@ -13,6 +13,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 
+import de.fernunihagen.dbis.anguillasearch.crawler.Crawler;
+import de.fernunihagen.dbis.anguillasearch.util.Utils;
+
 /**
  * Unit tests for the crawler.
  */

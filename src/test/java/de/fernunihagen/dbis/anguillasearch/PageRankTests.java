@@ -14,6 +14,11 @@ import org.junit.jupiter.api.Test;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 
+import de.fernunihagen.dbis.anguillasearch.crawler.Crawler;
+import de.fernunihagen.dbis.anguillasearch.crawler.WebsiteData;
+import de.fernunihagen.dbis.anguillasearch.searching.PageRank;
+import de.fernunihagen.dbis.anguillasearch.util.Utils;
+
 /**
  * Unit tests for the page rank algorithm.
  */

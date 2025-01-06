@@ -1,4 +1,4 @@
-package de.fernunihagen.dbis.anguillasearch;
+package de.fernunihagen.dbis.anguillasearch.searching;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -9,6 +9,12 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
+
+import de.fernunihagen.dbis.anguillasearch.crawler.Crawler;
+import de.fernunihagen.dbis.anguillasearch.crawler.WebsiteData;
+import de.fernunihagen.dbis.anguillasearch.indexing.IndexBuilder;
+import de.fernunihagen.dbis.anguillasearch.util.StringTokenizer;
+
 import java.util.Set;
 
 /**
@@ -47,7 +53,7 @@ public class SearchEngine {
      */
     private PageRank pageRank;
 
-    /*
+    /**
      * A map that holds the mapping of urls -> TFIDF scores of a
      * search with searchQuery.
      */
@@ -66,12 +72,13 @@ public class SearchEngine {
      * by the crawler. Once initialized the object can be used to perform
      * different types of searches on the crawled websites.
      *
-     * @param seedUrls an array of urls which are the seed urls for the crawler
-     *             of this SearchEngine.
+     * @param seedUrls   an array of urls which are the seed urls for the
+     * crawler
+     *                   of this SearchEngine.
      * @param crawlLimit the limit of sites to crawl by the internal crawler
      */
 
-    public SearchEngine(final String[] seedUrls, final  int crawlLimit) {
+    public SearchEngine(final String[] seedUrls, final int crawlLimit) {
         this.crawler = new Crawler(crawlLimit);
         crawler.crawl(Arrays.asList(seedUrls));
         this.indexBuilder = new IndexBuilder(crawler.getCrawledDataAsList());
@@ -147,7 +154,6 @@ public class SearchEngine {
         return extractUrlsToList(mapOfTfIdfSearch);
     }
 
-
     /**
      * Searches the given urls and outgoing links up to a total of maximum
      * 1024 websites in total for the search query terms and spits out a
@@ -210,7 +216,6 @@ public class SearchEngine {
             }
         }
 
-
         return addedScoresPerUrl;
     }
 
@@ -237,7 +242,6 @@ public class SearchEngine {
          */
         TokenVector queryVector = calculateQueryVector(queryTokens);
 
-
         /* gets the forward indexes ith TFIDF scores of the crawled websites */
         Map<String, Map<String, Double>> urlVectorsMap = indexBuilder.
         getForwardIndexTfIdf();
@@ -252,8 +256,8 @@ public class SearchEngine {
          * query vector gets calculated and the result gets put into the
          * map. (url -> (cosine similarity of url and query))
          */
-        for (Entry<String, Map<String, Double>> url : urlVectorsMap.entrySet(
-        )) {
+        for (Entry<String, Map<String, Double>> url : urlVectorsMap.
+        entrySet()) {
             TokenVector urlVector = new TokenVector(urlVectorsMap.get(url.
             getKey()));
             /* calculates the cosine similarity for */
@@ -324,16 +328,31 @@ public class SearchEngine {
          * every possible token in all crawled websites.
          */
         if (!queryTokens.isEmpty()) {
+            /* for every token */
             for (String token : allTokens) {
-                /* if the query was empty */
+                /*
+                 * calulates the TF score for the query
+                 * TF = frequenc of Token in query / amount of tokens in query.
+                 */
+                double tfScoreQuery;
                 if (!frequencyInQuery.containsKey(token)) {
-                    queryVector.put(token, 0.0);
+                    tfScoreQuery = 0.0;
 
                 } else {
-                    queryVector.put(token, 1.0);
+                    tfScoreQuery = (double) frequencyInQuery.get(token)
+                    / frequencyInQuery.size();
                 }
+                /*
+                 * gets the idf score for this token and multiplys it
+                 * with the tf score for this token for the query to apply
+                 * a weight to the query token instead of just using 1 or 0
+                 */
+                double idfScoreToken = indexBuilder.calculateIDFScore(token);
+                double tfIdfScoreToken = tfScoreQuery * idfScoreToken;
+                queryVector.put(token, tfIdfScoreToken);
             }
         }
+
         return new TokenVector(queryVector);
     }
 
@@ -439,10 +458,10 @@ public class SearchEngine {
      * Creates a short snippet of the website body that contains
      * one of the tokens of the query.
      *
-     * @param data the {@link WebsiteData} object that contains the body
-     * for the snippet.
+     * @param data        the {@link WebsiteData} object that contains the body
+     *                    for the snippet.
      * @param queryTokens the search query tokens that is looked for in
-     * the body of the website.
+     *                    the body of the website.
      * @return a short snippet of the website body
      */
     public static String createTextForSearchResult(final WebsiteData data,
@@ -494,7 +513,7 @@ public class SearchEngine {
      * the last search with searchQuery(); (url -> TFIDF sum)
      *
      * @return a copy of the sorted map of the result of the TFIDF search
-     * (descending order).
+     *         (descending order).
      */
     public Map<String, Double> getTfIdfMap() {
         return new HashMap<>(mapOfTfIdfSearch);
@@ -508,6 +527,7 @@ public class SearchEngine {
     public Crawler getCrawler() {
         return crawler;
     }
+
     /**
      * Retrieves the internal {@link IndexBuilder} object.
      *
@@ -516,6 +536,7 @@ public class SearchEngine {
     public IndexBuilder getIndexBuilder() {
         return indexBuilder;
     }
+
     /**
      * Retrieves the internal {@link PageRank} object.
      *
