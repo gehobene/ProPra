@@ -77,6 +77,7 @@ public final class GraphCreator {
         initializeFields();
         createSimpleGraph();
         createGraphWithTfIdf();
+        createGraphWithPageRank();
     }
 
     /**
@@ -221,7 +222,7 @@ public final class GraphCreator {
 
             // create a String for the name and TFIDF value of the node
             String nodeName = url + "\nTFIDF Score: " + String.format("%.10f",
-             tfIdfSum);
+                    tfIdfSum);
 
             /* create node and put into the nodes map */
             Object node = graph.insertVertex(parentNode, null, nodeName,
@@ -261,7 +262,10 @@ public final class GraphCreator {
         graph.insertVertex(parentNode, null, caption, 0, 0, 550,
                 100);
 
-        /* create a BufferedImage and save it to figures/net-graph.png */
+        /*
+         * create a BufferedImage and save it to figures/"search
+         * query"-net-graph.png
+         */
         try {
             BufferedImage image = mxCellRenderer.createBufferedImage(graph,
                     null, 2.0, Color.WHITE, true, null);
@@ -271,6 +275,163 @@ public final class GraphCreator {
             File outputfile = new File(path);
             /* write image to output file */
             ImageIO.write(image, "png", outputfile);
+
+            if (LOGGER.isInfoEnabled()) {
+                LOGGER.info(String.format("Image was created "
+                        + "and saved to %s", path));
+            }
+        } catch (IOException e) {
+            if (LOGGER.isErrorEnabled()) {
+                LOGGER.error(String.format("Failed to write Image: %s",
+                        e.getMessage()));
+            }
+        }
+    }
+
+    /**
+     * Creates a graph with nodes named after the urls of
+     * the crawled websites and edges representing the links on the site
+     * linking to other websites in the graph. A search with the query tokens
+     * is performed on the website data- The nodes get scaled according to
+     * the pagerank of the node and the edges show the flow of page rank score
+     * from one node to another. The graph is put into a circle
+     * layout and saved to a file in the folder figures which
+     * is contained in the topmost level of this project.
+     */
+    private static void createGraphWithPageRank() {
+        /* initialize query */
+        String[] query = {"flavor"};
+        List<String> queryTokens = Arrays.asList(query);
+        /* inizialize crawler and a list of crawled WebsiteData */
+        Crawler crawler = searchEngine.getCrawler();
+        List<WebsiteData> crawledData = crawler.getCrawledDataAsList();
+        /* retrieve a map of url -> pagerank from the search engine */
+        Map<String, Double> pageRankMap = searchEngine.getPageRank().
+        getPageRanksPerUrl();
+        /* create a mxGraph object and retrieve a parent object */
+        mxGraph graph = new mxGraph();
+        Object parentNode = graph.getDefaultParent();
+
+        /*
+         * initialize map to map url -> node every crawled site represents
+         * a node
+         */
+        Map<String, Object> nodes = new HashMap<>();
+
+        /*
+         * get minimum and maximum pagerank values so to normalize
+         * the nodesize
+         */
+        double minimum = Double.MAX_VALUE;
+        double maximum = Double.MIN_VALUE;
+        for (Map.Entry<String, Double> entry : pageRankMap.entrySet()) {
+            double pageRank = entry.getValue();
+            if (pageRank < minimum) {
+                minimum = pageRank;
+            }
+            if (pageRank > maximum) {
+                maximum = pageRank;
+            }
+        }
+
+        /*
+         * map every url to a newly created corresponding node and put
+         * it into the map nodes
+         */
+        for (WebsiteData websiteData : crawledData) {
+            String url = websiteData.getUrlOfSite();
+            /*
+             * if pagerank contains url set pagerank to the corresponding number
+             * else leave it on 0.0
+             */
+            double pageRank = 0.0;
+            if (pageRankMap.containsKey(url)) {
+                pageRank = pageRankMap.get(url);
+            }
+
+            /* scale the nodes (with normalization) */
+            int minimumSize = 50;
+            double nodeLength = minimumSize + 300.0 * (pageRank - minimum)
+             / (maximum - minimum);
+
+            /* label for the nodes */
+            String nodeLabel = String.format("%s%nPagerank=%.5f", url,
+                    pageRank);
+            /* create nodes and put into node map */
+            Object node = graph.insertVertex(parentNode, null, nodeLabel,
+                    50, 50, nodeLength, nodeLength);
+            nodes.put(url, node);
+        }
+
+        /*
+         * for every node (url) in the map create an edge to every other
+         * node that this node contains a link to.
+         */
+        for (WebsiteData websiteData : crawler.getCrawledDataAsList()) {
+            String url = websiteData.getUrlOfSite();
+            Object startNode = nodes.get(websiteData.getUrlOfSite());
+            /* get page rank for this url */
+            double pageRank = 0.0;
+            if (pageRankMap.containsKey(url)) {
+                pageRank = pageRankMap.get(url);
+            }
+            /* get amount of outgoing edges on this url */
+            int outgoingEdges = websiteData.getLinks().size();
+
+            /* calculate the outgoing page rank flow per edge for this node */
+            double pageRankFlowPerEdge = 0.0;
+            if (outgoingEdges > 0) {
+                pageRankFlowPerEdge = pageRank / outgoingEdges;
+            }
+
+            /* iterate over every link of the node */
+            for (String link : websiteData.getLinks()) {
+                /*
+                 * if the link target is present in the map add an edge
+                 * to that node
+                 */
+                if (nodes.containsKey(link)) {
+                    Object endNode = nodes.get(link);
+                    /* create an edge between startNode and endNode */
+                    String label = String.format("%.5f",
+                            pageRankFlowPerEdge);
+                    graph.insertEdge(parentNode, null, label, startNode,
+                     endNode);
+                }
+            }
+        }
+
+        /*
+         * create a circleLayout for the graph and execute it for all children
+         * of the parentNode
+         */
+        mxCircleLayout layout = new mxCircleLayout(graph);
+        layout.execute(parentNode);
+
+        /*
+         * create caption for the image with search query and a short
+         * explanation
+         */
+        String caption = "Search query:" + String.join(" ", queryTokens)
+                + "\nNode size scales with pagerank\n" + "Edges "
+                + "show the flow of page rank score a->b\n";
+        graph.insertVertex(parentNode, null, caption,
+                0, 0, 550, 100);
+
+        /*
+         * create a BufferedImage and save it to figures/"search
+         * query"-page-rank-net-graph.png
+         */
+        try {
+            BufferedImage image = mxCellRenderer.createBufferedImage(graph,
+            null, 2.0, Color.WHITE, true, null);
+            /* create output file */
+            String nameOfFile = String.join("-", queryTokens);
+            String path = "figures/" + nameOfFile
+                   + "-page-rank-net-graph.png";
+            File outputFile = new File(path);
+            /* write image to output file */
+            ImageIO.write(image, "png", outputFile);
 
             if (LOGGER.isInfoEnabled()) {
                 LOGGER.info(String.format("Image was created "
