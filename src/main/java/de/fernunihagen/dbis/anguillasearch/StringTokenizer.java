@@ -67,6 +67,7 @@ public final class StringTokenizer {
 
     // ==============================methods==============================//
 
+
     /**
      * Tokenizes and lemmatizes the text data contained in a
      * {@link WebsiteData}
@@ -97,10 +98,9 @@ public final class StringTokenizer {
             tokens.add(token.lemma());
         }
          tokens.removeAll(STOP_WORDS); // remove stop words
-        /* filter out emojis like the cheese emoji (surrogate pairs) */
-        tokens.replaceAll(s -> s.replaceAll(
-                "[\\uD800-\\uDBFF\\uDC00-\\uDFFF]", ""));
         tokens.removeIf(String::isEmpty);
+        tokens.removeIf(s -> s.length() < 4);
+        tokens.removeIf(s -> s.contains(".") || s.matches(".*\\d.*"));
         return tokens;
     }
 

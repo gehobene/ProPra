@@ -88,7 +88,7 @@ class PageRankTests {
 
     @Test
     void correctPageRankScores() throws IOException {
-        // Create a map with URLs and the correct page rank scores;
+        // Create a map with URLs and the correct page rank scores.
         // These scores will be used to verify the correctness of the page rank
         // algorithm
         Map<String, Double> correctPageRankScores = Map.of(
@@ -101,8 +101,8 @@ class PageRankTests {
         // Extract the seed URLs from the JSON file
         String[] seedUrls = new Gson().fromJson(testJSON.get("Seed-URLs"), String[].class);
 
-        Map<String, Double> pageRankMap = pageRankForAllIntranets.get(3);
         // Add your code here to calculate the page rank
+        Map<String, Double> pageRankMap = pageRankForAllIntranets.get(3);
 
         // Verify that the page rank scores are correct
         for (Map.Entry<String, Double> entry : correctPageRankScores.entrySet()) {

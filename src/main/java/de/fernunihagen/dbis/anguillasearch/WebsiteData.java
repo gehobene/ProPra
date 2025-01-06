@@ -1,6 +1,6 @@
 package de.fernunihagen.dbis.anguillasearch;
 
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 /**
@@ -52,7 +52,7 @@ public class WebsiteData {
 
     public WebsiteData(final String url) {
         this.urlOfSite = url;
-        this.links = new HashSet<>();
+        this.links = new LinkedHashSet<>();
     }
 
     // ==============================methods==============================//
@@ -137,6 +137,6 @@ public class WebsiteData {
      * @return a copy of the set of links
      */
     public Set<String> getLinks() {
-        return new HashSet<>(links);
+        return new LinkedHashSet<>(links);
     }
 }

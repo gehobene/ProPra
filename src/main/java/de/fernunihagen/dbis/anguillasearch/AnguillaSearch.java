@@ -29,7 +29,7 @@ public final class AnguillaSearch {
      * from the parsed json files.
      */
     private static SearchEngine searchEngine = new SearchEngine(getSeedUrls(
-            parseJsons()));
+            parseJsons()), 1024);
     // ============================constructors===========================//
 
     private AnguillaSearch() {

@@ -15,6 +15,7 @@ import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -75,7 +76,7 @@ public class Crawler {
     public Crawler(final int pageLimit) {
         this.urlQueue = new LinkedList<>();
         this.visitedUrls = new HashSet<>();
-        this.crawledData = new HashMap<>();
+        this.crawledData = new LinkedHashMap<>();
         this.crawlLimit = pageLimit;
     }
 
@@ -109,6 +110,7 @@ public class Crawler {
         // adds all provided urls from the list to the queue
         urlQueue.addAll(seedUrls);
 
+
         while (!urlQueue.isEmpty() && visitedUrls.size() < crawlLimit) {
             // retrieves the first element of the queue
             String url = urlQueue.poll();
@@ -134,7 +136,8 @@ public class Crawler {
 
                 // add new urls from the crawled site to the queue
                 for (String link : data.getLinks()) {
-                    if (!visitedUrls.contains(link)) {
+                    if (!visitedUrls.contains(link) && !urlQueue.contains(
+                    link)) {
                         urlQueue.add(link);
                     }
                 }
@@ -164,7 +167,7 @@ public class Crawler {
                             url, e.getMessage()));
                 }
             }
-        }
+    }
         return visitedUrls.size(); // returns the number of crawled urls
     }
 

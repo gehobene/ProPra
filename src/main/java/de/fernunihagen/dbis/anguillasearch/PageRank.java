@@ -242,7 +242,7 @@ public class PageRank {
              * and for the previous one
              */
             double newPagerank = entry.getValue();
-            double oldPagerank = pageRanksPerUrl.get(url);
+            double oldPagerank = pageRanksPerUrl.getOrDefault(url, 0.0);
             /* calculates the absolute difference between the two */
             diffBetweenIterations += Math.abs(newPagerank - oldPagerank);
         }

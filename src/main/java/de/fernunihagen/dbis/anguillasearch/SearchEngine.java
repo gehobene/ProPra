@@ -47,6 +47,12 @@ public class SearchEngine {
      */
     private PageRank pageRank;
 
+    /*
+     * A map that holds the mapping of urls -> TFIDF scores of a
+     * search with searchQuery.
+     */
+    private Map<String, Double> mapOfTfIdfSearch;
+
     // ============================constructors===========================//
     /**
      * Creates a new instanze of {@link SearchEngine}. Initializes a new
@@ -62,10 +68,11 @@ public class SearchEngine {
      *
      * @param seedUrls an array of urls which are the seed urls for the crawler
      *             of this SearchEngine.
+     * @param crawlLimit the limit of sites to crawl by the internal crawler
      */
 
-    public SearchEngine(final String[] seedUrls) {
-        this.crawler = new Crawler(1024);
+    public SearchEngine(final String[] seedUrls, final  int crawlLimit) {
+        this.crawler = new Crawler(crawlLimit);
         crawler.crawl(Arrays.asList(seedUrls));
         this.indexBuilder = new IndexBuilder(crawler.getCrawledDataAsList());
         this.pageRank = new PageRank(crawler.getCrawledDataAsList());
@@ -135,10 +142,11 @@ public class SearchEngine {
      */
 
     public List<String> searchQuery(final String[] query) {
-        Map<String, Double> sortedUrls = sortScores(
+        mapOfTfIdfSearch = sortScores(
                 processQueryAndSearchTFIDF(query));
-        return extractUrlsToList(sortedUrls);
+        return extractUrlsToList(mapOfTfIdfSearch);
     }
+
 
     /**
      * Searches the given urls and outgoing links up to a total of maximum
@@ -233,7 +241,6 @@ public class SearchEngine {
         /* gets the forward indexes ith TFIDF scores of the crawled websites */
         Map<String, Map<String, Double>> urlVectorsMap = indexBuilder.
         getForwardIndexTfIdf();
-
         /*
          * creates a result map for urls and cosine similarity scores
          * (url -> (cosine similarity of url and query))
@@ -479,5 +486,42 @@ public class SearchEngine {
      */
     public Map<String, WebsiteData> getCrawledData() {
         return new HashMap<>(crawler.getCrawledData());
+    }
+
+    /**
+     * Retrieves a sorted map of the result of the TFIDF search.
+     * The key is the url and the value is summed up TFIDF score for
+     * the last search with searchQuery(); (url -> TFIDF sum)
+     *
+     * @return a copy of the sorted map of the result of the TFIDF search
+     * (descending order).
+     */
+    public Map<String, Double> getTfIdfMap() {
+        return new HashMap<>(mapOfTfIdfSearch);
+    }
+
+    /**
+     * Retrieves the internal {@link Crawler} object.
+     *
+     * @return the internal {@link Crawler} object.
+     */
+    public Crawler getCrawler() {
+        return crawler;
+    }
+    /**
+     * Retrieves the internal {@link IndexBuilder} object.
+     *
+     * @return the internal {@link IndexBuilder} object.
+     */
+    public IndexBuilder getIndexBuilder() {
+        return indexBuilder;
+    }
+    /**
+     * Retrieves the internal {@link PageRank} object.
+     *
+     * @return the internal {@link PageRank} object.
+     */
+    public PageRank getPageRank() {
+        return pageRank;
     }
 }

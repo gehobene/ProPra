@@ -28,7 +28,7 @@ class SearchTests {
         List<String> foundURLs;
 
         // Place your code here to execute the search
-        SearchEngine searchEngine = new SearchEngine(seedUrls);
+        SearchEngine searchEngine = new SearchEngine(seedUrls, 1024);
         foundURLs = searchEngine.searchQuery(query);
 
         // Verify that the found URLs are correct, i.e. the same as stated in the JSON
