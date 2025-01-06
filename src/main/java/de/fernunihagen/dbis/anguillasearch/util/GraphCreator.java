@@ -26,15 +26,19 @@ import de.fernunihagen.dbis.anguillasearch.crawler.WebsiteData;
 import de.fernunihagen.dbis.anguillasearch.searching.SearchEngine;
 
 /**
- * This class creates two cicrled graphs of some predefined net of urls which
+ * This class creates four cicrled graphs of some predefined net of urls which
  * are linked to one another. It then performes a search with a predefined
- * search query and creates two graphs, one with the nodes representing the
+ * search query and creates four graphs, one with the nodes representing the
  * websites and the edges representing the links between those websites. The
  * second graph is almost the same but in addition shows on the labels of
  * the nodes the TFIDF scores for that website in regard to the search query.
  * It also has a caption node which shows the query tokens which were used
- * during the search. This graphs are then saved to two separate .png file in
- * the folder figures.
+ * during the search. The 3rd graph scales the nodes according to their
+ * page rank score, shows the flow of page rank between the nodes on the edges
+ * and has an additional explanation in the caption. The fourth graph
+ * highlights the top 3 scored nodes in regard to the combined cosine
+ * similarity and page rank scores. This graphs are then saved to four
+ * separate .png files in the folder figures.
  */
 public final class GraphCreator {
     /**
@@ -78,6 +82,7 @@ public final class GraphCreator {
         createSimpleGraph();
         createGraphWithTfIdf();
         createGraphWithPageRank();
+        createGraphWithCosineAndPageRank();
     }
 
     /**
@@ -115,8 +120,7 @@ public final class GraphCreator {
          * it into the map nodes
          */
         for (WebsiteData websiteData : crawler.getCrawledDataAsList()) {
-            Object node = graph.insertVertex(parentNode, null, websiteData.
-            getUrlOfSite(), 50, 50, 250, 100);
+            Object node = graph.insertVertex(parentNode, null, websiteData.getUrlOfSite(), 50, 50, 250, 100);
             nodes.put(websiteData.getUrlOfSite(), node);
         }
 
@@ -181,7 +185,7 @@ public final class GraphCreator {
      */
 
     private static void createGraphWithTfIdf() {
-        String[] query = {"flavor"};
+        String[] query = { "flavor" };
         List<String> queryTokens = Arrays.asList(query);
         Crawler crawler = searchEngine.getCrawler();
         /* create a mxGraph object and retrieve a parent object */
@@ -300,14 +304,13 @@ public final class GraphCreator {
      */
     private static void createGraphWithPageRank() {
         /* initialize query */
-        String[] query = {"flavor"};
+        String[] query = { "flavor" };
         List<String> queryTokens = Arrays.asList(query);
         /* inizialize crawler and a list of crawled WebsiteData */
         Crawler crawler = searchEngine.getCrawler();
         List<WebsiteData> crawledData = crawler.getCrawledDataAsList();
         /* retrieve a map of url -> pagerank from the search engine */
-        Map<String, Double> pageRankMap = searchEngine.getPageRank().
-        getPageRanksPerUrl();
+        Map<String, Double> pageRankMap = searchEngine.getPageRank().getPageRanksPerUrl();
         /* create a mxGraph object and retrieve a parent object */
         mxGraph graph = new mxGraph();
         Object parentNode = graph.getDefaultParent();
@@ -352,7 +355,7 @@ public final class GraphCreator {
             /* scale the nodes (with normalization) */
             int minimumSize = 50;
             double nodeLength = minimumSize + 300.0 * (pageRank - minimum)
-             / (maximum - minimum);
+                    / (maximum - minimum);
 
             /* label for the nodes */
             String nodeLabel = String.format("%s%nPagerank=%.5f", url,
@@ -396,7 +399,7 @@ public final class GraphCreator {
                     String label = String.format("%.5f",
                             pageRankFlowPerEdge);
                     graph.insertEdge(parentNode, null, label, startNode,
-                     endNode);
+                            endNode);
                 }
             }
         }
@@ -424,11 +427,11 @@ public final class GraphCreator {
          */
         try {
             BufferedImage image = mxCellRenderer.createBufferedImage(graph,
-            null, 2.0, Color.WHITE, true, null);
+                    null, 2.0, Color.WHITE, true, null);
             /* create output file */
             String nameOfFile = String.join("-", queryTokens);
             String path = "figures/" + nameOfFile
-                   + "-page-rank-net-graph.png";
+                    + "-page-rank-net-graph.png";
             File outputFile = new File(path);
             /* write image to output file */
             ImageIO.write(image, "png", outputFile);
@@ -443,6 +446,143 @@ public final class GraphCreator {
                         e.getMessage()));
             }
         }
+    }
+
+    /**
+     * Creates a graph with nodes named after the urls of
+     * the crawled websites and edges representing the links on the site
+     * linking to other websites in the graph. A search with the query tokens
+     * is performed on the website data with the comination of page rank
+     * and cosine scores. The top 3 Nodes with the highest score
+     * get emphasized by red color. The graph is put into a circle
+     * layout and saved to a file in the folder figures which
+     * is contained in the topmost level of this project.
+     */
+    private static void createGraphWithCosineAndPageRank() {
+        /* initialize query */
+        String[] query = { "flavor" };
+        List<String> queryTokens = Arrays.asList(query);
+        /* inizialize crawler and a list of crawled WebsiteData */
+        Crawler crawler = searchEngine.getCrawler();
+        List<WebsiteData> crawledData = crawler.getCrawledDataAsList();
+
+        /*
+         * Get list and map with the results from the search with cosine and
+         * pagerank. list (url) and map (url -> score), both sorted
+         * in descending order according to score.
+         */
+        List<String> sortedResults = searchEngine.searchQueryPageRankAndCosine(query);
+        Map<String, Double> cosineAndPageRankMap = searchEngine.getCosineAndPagerankMap();
+
+        /* Create a mxGraph object and retrieve a parent object. */
+        mxGraph graph = new mxGraph();
+        Object parentNode = graph.getDefaultParent();
+        /*
+         * Initialize map to map url -> node every crawled site represents
+         * a node.
+         */
+        Map<String, Object> nodes = new HashMap<>();
+        /*
+         * Extract the top 3 websites from the sorted map of combined page
+         * rank and cosine scores.
+         */
+        List<String> top3ScoredWebsites = new ArrayList<>();
+        for (String url : sortedResults) {
+            if (top3ScoredWebsites.size() < 3) {
+                top3ScoredWebsites.add(url);
+            } else {
+                break;
+            }
+        }
+
+        /*
+         * map every url to a newly created corresponding node and put
+         * it into the map nodes, label it with the corresponding score
+         */
+        for (WebsiteData websiteData : crawledData) {
+            String url = websiteData.getUrlOfSite();
+            double cosineAndPageRankScore = 0.0;
+            if (cosineAndPageRankMap.containsKey(url)) {
+                cosineAndPageRankScore = cosineAndPageRankMap.get(url);
+            }
+            /* label the nodes */
+            String label = String.format("%s%nScore=%.5f", url, cosineAndPageRankScore);
+            /*
+             * if map is contained in top 3 set style to red color
+             * else to white
+             */
+            String color = "fillColor=#FF9999";
+            if (!top3ScoredWebsites.contains(url)) {
+                color = "fillColor=#FFFFFF";
+            }
+            /* create node and put into the nodes map */
+            Object node = graph.insertVertex(parentNode, null, label, 50, 50, 250, 100, color);
+            nodes.put(url, node);
+        }
+
+        /*
+         * for every node (url) in the map create an edge to every other
+         * node that this node contains a link to.
+         */
+        for (WebsiteData websiteData : crawledData) {
+            Object startNode = nodes.get(websiteData.getUrlOfSite());
+            /* iterate over every link of the node */
+            for (String link : websiteData.getLinks()) {
+                /*
+                 * if the link target is present in the map add an edge
+                 * to that node
+                 */
+                if (nodes.containsKey(link)) {
+                    Object endNode = nodes.get(link);
+                    /* create an edge between startNode and endNode */
+                    graph.insertEdge(parentNode, null, "", startNode, endNode);
+                }
+            }
+        }
+
+        /*
+         * create a circleLayout for the graph and execute it for all children
+         * of the parentNode
+         */
+        mxCircleLayout layout = new mxCircleLayout(graph);
+        layout.execute(parentNode);
+
+        /*
+         * create caption for the image with search query and a short
+         * explanation
+         */
+        String caption = "Search query:" + String.join(" ", queryTokens)
+                + "\nNode labels = combined score of cosine and pagerank\n"
+                + "Top 3 scored Nodes are highlited in red\n";
+        graph.insertVertex(parentNode, null, caption,
+                0, 0, 550, 100);
+
+        /*
+         * create a BufferedImage and save it to figures/"search
+         * query"-page-rank-net-graph.png
+         */
+        try {
+            BufferedImage image = mxCellRenderer.createBufferedImage(graph,
+                    null, 2.0, Color.WHITE, true, null);
+            /* create output file */
+            String nameOfFile = String.join("-", queryTokens);
+            String path = "figures/" + nameOfFile
+                    + "-top3-net-graph.png";
+            File outputFile = new File(path);
+            /* write image to output file */
+            ImageIO.write(image, "png", outputFile);
+
+            if (LOGGER.isInfoEnabled()) {
+                LOGGER.info(String.format("Image was created "
+                        + "and saved to %s", path));
+            }
+        } catch (IOException e) {
+            if (LOGGER.isErrorEnabled()) {
+                LOGGER.error(String.format("Failed to write Image: %s",
+                        e.getMessage()));
+            }
+        }
+
     }
 
     /**

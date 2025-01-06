@@ -59,6 +59,8 @@ public class SearchEngine {
      */
     private Map<String, Double> mapOfTfIdfSearch;
 
+    private Map<String, Double> mapOfCosineAndPagerankSearch;
+
     // ============================constructors===========================//
     /**
      * Creates a new instanze of {@link SearchEngine}. Initializes a new
@@ -132,9 +134,9 @@ public class SearchEngine {
             Double combinedScore = similarityScore * pageRankMap.get(url);
             combinedScores.put(url, combinedScore);
         }
-        Map<String, Double> sortedUrls = sortScores(
+        mapOfCosineAndPagerankSearch = sortScores(
                 combinedScores);
-        return extractUrlsToList(sortedUrls);
+        return extractUrlsToList(mapOfCosineAndPagerankSearch);
     }
 
     /**
@@ -249,7 +251,7 @@ public class SearchEngine {
          * creates a result map for urls and cosine similarity scores
          * (url -> (cosine similarity of url and query))
          */
-        Map<String, Double> similarityScores = new HashMap<>();
+        Map<String, Double> similarityScores = new LinkedHashMap<>();
         /*
          * iterates over every url in the index and creates a tokenvector for
          * that url. Then the cosine similarity of the url vector and the
@@ -504,7 +506,7 @@ public class SearchEngine {
      *         crawler
      */
     public Map<String, WebsiteData> getCrawledData() {
-        return new HashMap<>(crawler.getCrawledData());
+        return new LinkedHashMap<>(crawler.getCrawledData());
     }
 
     /**
@@ -516,7 +518,19 @@ public class SearchEngine {
      *         (descending order).
      */
     public Map<String, Double> getTfIdfMap() {
-        return new HashMap<>(mapOfTfIdfSearch);
+        return new LinkedHashMap<>(mapOfTfIdfSearch);
+    }
+
+    /**
+     * Retrieves a sorted map of the result of the TFIDF search.
+     * The key is the url and the value is summed up TFIDF score for
+     * the last search with searchQuery(); (url -> TFIDF sum)
+     *
+     * @return a copy of the sorted map of the result of the combined
+     * search with cosine similarity and page rank.(descending order).
+     */
+    public Map<String, Double> getCosineAndPagerankMap() {
+        return new LinkedHashMap<>(mapOfCosineAndPagerankSearch);
     }
 
     /**
