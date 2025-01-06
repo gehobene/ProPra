@@ -59,6 +59,10 @@ public class SearchEngine {
      */
     private Map<String, Double> mapOfTfIdfSearch;
 
+    /**
+     * A map that holds the mapping of urls -> combined cosine and
+     * pagerank scores.
+     */
     private Map<String, Double> mapOfCosineAndPagerankSearch;
 
     // ============================constructors===========================//

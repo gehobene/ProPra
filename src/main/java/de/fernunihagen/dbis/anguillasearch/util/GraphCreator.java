@@ -120,7 +120,8 @@ public final class GraphCreator {
          * it into the map nodes
          */
         for (WebsiteData websiteData : crawler.getCrawledDataAsList()) {
-            Object node = graph.insertVertex(parentNode, null, websiteData.getUrlOfSite(), 50, 50, 250, 100);
+            Object node = graph.insertVertex(parentNode, null, websiteData.
+            getUrlOfSite(), 50, 50, 250, 100);
             nodes.put(websiteData.getUrlOfSite(), node);
         }
 
@@ -185,7 +186,7 @@ public final class GraphCreator {
      */
 
     private static void createGraphWithTfIdf() {
-        String[] query = { "flavor" };
+        String[] query = {"flavor"};
         List<String> queryTokens = Arrays.asList(query);
         Crawler crawler = searchEngine.getCrawler();
         /* create a mxGraph object and retrieve a parent object */
@@ -304,13 +305,14 @@ public final class GraphCreator {
      */
     private static void createGraphWithPageRank() {
         /* initialize query */
-        String[] query = { "flavor" };
+        String[] query = {"flavor"};
         List<String> queryTokens = Arrays.asList(query);
         /* inizialize crawler and a list of crawled WebsiteData */
         Crawler crawler = searchEngine.getCrawler();
         List<WebsiteData> crawledData = crawler.getCrawledDataAsList();
         /* retrieve a map of url -> pagerank from the search engine */
-        Map<String, Double> pageRankMap = searchEngine.getPageRank().getPageRanksPerUrl();
+        Map<String, Double> pageRankMap = searchEngine.getPageRank().
+        getPageRanksPerUrl();
         /* create a mxGraph object and retrieve a parent object */
         mxGraph graph = new mxGraph();
         Object parentNode = graph.getDefaultParent();
@@ -460,7 +462,7 @@ public final class GraphCreator {
      */
     private static void createGraphWithCosineAndPageRank() {
         /* initialize query */
-        String[] query = { "flavor" };
+        String[] query = {"flavor"};
         List<String> queryTokens = Arrays.asList(query);
         /* inizialize crawler and a list of crawled WebsiteData */
         Crawler crawler = searchEngine.getCrawler();
@@ -471,8 +473,10 @@ public final class GraphCreator {
          * pagerank. list (url) and map (url -> score), both sorted
          * in descending order according to score.
          */
-        List<String> sortedResults = searchEngine.searchQueryPageRankAndCosine(query);
-        Map<String, Double> cosineAndPageRankMap = searchEngine.getCosineAndPagerankMap();
+        List<String> sortedResults = searchEngine.
+        searchQueryPageRankAndCosine(query);
+        Map<String, Double> cosineAndPageRankMap = searchEngine.
+        getCosineAndPagerankMap();
 
         /* Create a mxGraph object and retrieve a parent object. */
         mxGraph graph = new mxGraph();
@@ -506,7 +510,8 @@ public final class GraphCreator {
                 cosineAndPageRankScore = cosineAndPageRankMap.get(url);
             }
             /* label the nodes */
-            String label = String.format("%s%nScore=%.5f", url, cosineAndPageRankScore);
+            String label = String.format("%s%nScore=%.5f", url,
+             cosineAndPageRankScore);
             /*
              * if map is contained in top 3 set style to red color
              * else to white
@@ -516,7 +521,8 @@ public final class GraphCreator {
                 color = "fillColor=#FFFFFF";
             }
             /* create node and put into the nodes map */
-            Object node = graph.insertVertex(parentNode, null, label, 50, 50, 250, 100, color);
+            Object node = graph.insertVertex(parentNode, null, label, 50,
+             50, 250, 100, color);
             nodes.put(url, node);
         }
 

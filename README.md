@@ -33,6 +33,8 @@ An intranet with various websites is also automatically provided to ensure a sta
     - [Execute the JAR in the Development Environment](#execute-the-jar-in-the-development-environment)
     - [Execute the JAR using the Docker Image](#execute-the-jar-using-the-docker-image)
   - [List of pre-installed VSCode/Codium Extensions](#list-of-pre-installed-vscodecodium-extensions)
+  - [Usage of the program](#usage-of-the-program)
+    - [Usage Example](#usage-example)
 
 
 ## Installation (Dependencies)
@@ -240,3 +242,43 @@ To run the docker image created by the CI/CD pipeline.
 | *Markdownlint* | Markdown linting and style checking for Visual Studio Code. |
 | *Markdown Preview Github Styling* | Changes VS Code's built-in markdown preview to match Github's style. |
 | *Meld Diff* | Use meld (or other tools like WinMerge, Beyond Compare, ...) to compare files, folders, clipboard or git changes from visual studio code directly. |
+
+## Usage of the program
+
+After successfully building and starting the program (see [Execute the JAR](#execute-the-jar)), a menu will appear in the console where you can select the search mode:
+
+1. **Select program mode**  
+   Choose a number (1, 2, or 3) to determine how the search results are calculated:  
+   - `1`: search result relevance based on pure TFIDF scores
+   - `2`: search result relevance based on cosine similarity between the query and the documents  
+   - `3`: search result relevance based on using Cosine Similarity and PageRank as a combined score.
+
+2. **Enter Search Query**  
+   Next, you will be asked to enter your search terms.  
+   For example:
+
+   - Entering `exit` will exit the program.  
+   - Otherwise, your input (for example `"flavor"`) will be processed into a search according to your earlier selection.
+
+3. **Display Search Results**  
+   The program crawls the websites `seedUrls` and all the sites they link to recursively and generates a ranking of results based on the selected search mode. 
+   The console will display the amount of search results, the found urls, their titles and short snippets out of the body of the site.
+
+4. **Continue Searching or Exit**  
+   After the results are displayed, you will return automatically to the program mode selection menu.
+   - Now you can chose a new mode,  
+   - then either type `exit` to terminate the program,  
+   - Or simply input a new search phrase and the same loop begins again.
+
+### Usage Example
+
+1. Start the program.  
+2. Choose mode `2` for cosine similarity based site ranking.  
+3. Enter the search query `"ricotta"`.  
+4. View the ranked search results. 
+5. Choose mode `1` for TFIDF score based site ranking. 
+6. Input a new search term (for example `"gouda"`).
+7. View the ranked search results.
+8. If you want, switch to mode `3` for cosine and pagerank based siteranking and repeat the process with a new search query.  
+9. Enter `exit` to close the program.
+
