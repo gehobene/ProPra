@@ -33,8 +33,9 @@ An intranet with various websites is also automatically provided to ensure a sta
     - [Execute the JAR in the Development Environment](#execute-the-jar-in-the-development-environment)
     - [Execute the JAR using the Docker Image](#execute-the-jar-using-the-docker-image)
   - [List of pre-installed VSCode/Codium Extensions](#list-of-pre-installed-vscodecodium-extensions)
-  - [Usage of the program](#usage-of-the-program)
+  - [Usage of the program AnguillaSearch](#usage-of-the-program-anguillasearch)
     - [Usage Example](#usage-example)
+  - [Download](#download)
 
 
 ## Installation (Dependencies)
@@ -243,7 +244,7 @@ To run the docker image created by the CI/CD pipeline.
 | *Markdown Preview Github Styling* | Changes VS Code's built-in markdown preview to match Github's style. |
 | *Meld Diff* | Use meld (or other tools like WinMerge, Beyond Compare, ...) to compare files, folders, clipboard or git changes from visual studio code directly. |
 
-## Usage of the program
+## Usage of the program AnguillaSearch
 
 After successfully building and starting the program (see [Execute the JAR](#execute-the-jar)), a menu will appear in the console where you can select the search mode:
 
@@ -282,3 +283,6 @@ After successfully building and starting the program (see [Execute the JAR](#exe
 8. If you want, switch to mode `3` for cosine and pagerank based siteranking and repeat the process with a new search query.  
 9. Enter `exit` to close the program.
 
+## Download
+
+Download the latest `.jar` file from the [Releases page](https://git.propra-prod1.fernuni-hagen.de/propra/ws24-25/q9342591/-/releases).
